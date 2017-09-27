@@ -71,8 +71,8 @@ def mkdir(classTag):
         name = classTag.findPrevious('span').text
         os.mkdir(name)
 
-    '''If folder exists, create a new folder'''
     except FileExistsError:
+        '''If folder exists, create a new one'''
         print('Folder already exists "'+name+'"')
         name = name+' (2)'
         os.mkdir(name)
