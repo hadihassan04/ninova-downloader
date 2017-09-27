@@ -105,12 +105,12 @@ def capturePage(session, resourceTagList):
             '''Go up when done'''
             os.chdir('..')
 
-        '''If the icon is a link, dont touch it'''
         elif tag.findPrevious('img')['src'] == '/images/ds/link.png':
+            '''If the icon is a link, dont touch it'''
             continue
 
-        '''Download the rest'''
         else:
+            '''Download the rest'''
             r = session.get(url+tag['href'])
             f = open(tag.text, 'wb')
             f.write(r.content)
