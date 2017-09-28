@@ -8,7 +8,7 @@ def login(s):
 
     '''Get username'''
     username = input("username: ")
-    '''Get password with getpass module'''
+    '''Get password with getpass module, cuz muh privacy'''
     password = getpass.getpass("pass: ")
 
     '''Try to get main page of ninova'''
@@ -66,22 +66,25 @@ def saveFile(r, name):
 
 def mkdir(classTag):
 
+    '''Get cwd'''
+    root = os.getcwd()
+
     '''Try creating a new folder'''
     try:
         name = classTag.findPrevious('span').text
-        os.mkdir(name)
+        os.mkdir(root+os.sep+name)
 
     except FileExistsError:
         '''If folder exists, create a new one'''
         print('Folder already exists "'+name+'"')
-        name = name+' (2)'
-        os.mkdir(name)
+        name = name+' (dup)'
+        os.mkdir(root+os.sep+name)
 
     '''Create the necessary subfolders'''
-    os.mkdir(name+os.sep+'dersDosyalari')
-    os.mkdir(name+os.sep+'sinifDosyalari')
+    os.mkdir(root+os.sep+name+os.sep+'dersDosyalari')
+    os.mkdir(root+os.sep+name+os.sep+'sinifDosyalari')
 
-    '''Go up'''
+    '''Go in'''
     os.chdir(name)
 
 
@@ -94,16 +97,19 @@ def capturePage(session, resourceTagList):
             and enter, then call capturePage for the subfolder page'''
         if tag.findPrevious('img')['src'] == '/images/ds/folder.png':
 
-            os.mkdir(tag.text)
-            os.chdir(tag.text)
+            '''Get root directory'''
+            root = os.getcwd()
+
+            os.mkdir(root+os.sep+tag.text)
+            os.chdir(root+os.sep+tag.text)
 
             soup = getPage(session, url+tag['href'])
             links = getLinks(soup, 'Dosyalari?g')
 
             capturePage(session, links)
 
-            '''Go up when done'''
-            os.chdir('..')
+            '''Go back when done'''
+            os.chdir(root)
 
         elif tag.findPrevious('img')['src'] == '/images/ds/link.png':
             '''If the icon is a link, dont touch it'''
@@ -119,23 +125,26 @@ def capturePage(session, resourceTagList):
 
 def captureClass(session, classTag):
 
+    '''Get root directory'''
+    root = os.getcwd()
+
     '''Create class folder'''
     mkdir(link)
 
     '''GET and capture lecture files'''
     pageSoup = getPage(s, url+link['href']+'/DersDosyalari')
     links = getLinks(pageSoup, 'DersDosyalari?')
-    os.chdir('dersDosyalari')
+    os.chdir(root+os.sep+'dersDosyalari')
     capturePage(session, links)
 
     '''GET and capture class files'''
     pageSoup = getPage(s, url+link['href']+'/SinifDosyalari')
     links = getLinks(pageSoup, 'SinifDosyalari?')
-    os.chdir('../sinifDosyalari')
+    os.chdir(root+os.sep+'sinifDosyalari')
     capturePage(session, links)
 
-    '''Go up when done'''
-    os.chdir('../../')
+    '''Go back to root when done'''
+    os.chdir(root)
 
 
 '''Base URL'''
@@ -147,10 +156,10 @@ s = requests.Session()
 '''Login to ITU account'''
 login(s)
 
-'''Get the main page and class links of ninova'''
+'''Get the main page and class links from ninova'''
 kampusSoup = getPage(s, url+'/Kampus1')
 classLinks = getLinks(kampusSoup, 'ErisimAgaci')
 
-'''Capture every class'''
+'''Capture parsed classes'''
 for link in classLinks:
     captureClass(s, link)
