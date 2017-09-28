@@ -69,23 +69,28 @@ def mkdir(classTag):
     '''Get cwd'''
     root = os.getcwd()
 
+    name = classTag.findPrevious('span').text
+
     '''Try creating a new folder'''
     try:
-        name = classTag.findPrevious('span').text
-        os.mkdir(root+os.sep+name)
+        os.mkdir(name)
 
     except FileExistsError:
         '''If folder exists, create a new one'''
         print('Folder already exists "'+name+'"')
         name = name+' (dup)'
-        os.mkdir(root+os.sep+name)
+        os.mkdir(name)
+
+    os.chdir(name)
 
     '''Create the necessary subfolders'''
-    os.mkdir(root+os.sep+name+os.sep+'dersDosyalari')
-    os.mkdir(root+os.sep+name+os.sep+'sinifDosyalari')
+    os.mkdir('dersDosyalari')
+    os.mkdir('sinifDosyalari')
 
-    '''Go in'''
-    os.chdir(name)
+    '''Go back'''
+    os.chdir(root)
+
+    return name
 
 
 def capturePage(session, resourceTagList):
@@ -100,8 +105,8 @@ def capturePage(session, resourceTagList):
             '''Get root directory'''
             root = os.getcwd()
 
-            os.mkdir(root+os.sep+tag.text)
-            os.chdir(root+os.sep+tag.text)
+            os.mkdir(tag.text)
+            os.chdir(tag.text)
 
             soup = getPage(session, url+tag['href'])
             links = getLinks(soup, 'Dosyalari?g')
@@ -129,18 +134,20 @@ def captureClass(session, classTag):
     root = os.getcwd()
 
     '''Create class folder'''
-    mkdir(link)
+    name = mkdir(link)
+    os.chdir(name)
 
     '''GET and capture lecture files'''
     pageSoup = getPage(s, url+link['href']+'/DersDosyalari')
     links = getLinks(pageSoup, 'DersDosyalari?')
-    os.chdir(root+os.sep+'dersDosyalari')
+    os.chdir('dersDosyalari')
     capturePage(session, links)
+    os.chdir('..')
 
     '''GET and capture class files'''
     pageSoup = getPage(s, url+link['href']+'/SinifDosyalari')
     links = getLinks(pageSoup, 'SinifDosyalari?')
-    os.chdir(root+os.sep+'sinifDosyalari')
+    os.chdir('sinifDosyalari')
     capturePage(session, links)
 
     '''Go back to root when done'''
