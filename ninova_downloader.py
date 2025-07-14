@@ -15,7 +15,7 @@ def login(s):
     r = s.get('http://ninova.itu.edu.tr/kampus')
 
     '''Parse the returned page with bs4'''
-    forms = bs4.BeautifulSoup(r.text, 'html.parser').findAll('input')
+    forms = bs4.BeautifulSoup(r.text, 'html.parser').find_all('input')
 
     '''Fill POST data'''
     data = {}
@@ -64,12 +64,19 @@ def saveFile(r, name):
     f.close()
 
 
+def sanitize_filename(name):
+    invalid_chars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
+    for char in invalid_chars:
+        name = name.replace(char, '_')
+    return name.strip(' .')
+
+
 def mkdir(classTag):
 
     '''Get cwd'''
     root = os.getcwd()
 
-    name = classTag.findPrevious('span').text
+    name = sanitize_filename(classTag.find_previous('span').text)
 
     '''Try creating a new folder'''
     try:
@@ -79,6 +86,7 @@ def mkdir(classTag):
         '''If folder exists, create a new one'''
         print('Folder already exists "'+name+'"')
         name = name+' (dup)'
+        name = sanitize_filename(name)
         os.mkdir(name)
 
     os.chdir(name)
@@ -100,13 +108,14 @@ def capturePage(session, resourceTagList):
 
         '''Check for the icon, if it is a folder, create the subfolder,
             and enter, then call capturePage for the subfolder page'''
-        if tag.findPrevious('img')['src'] == '/images/ds/folder.png':
+        if tag.find_previous('img')['src'] == '/images/ds/folder.png':
 
             '''Get root directory'''
             root = os.getcwd()
 
-            os.mkdir(tag.text)
-            os.chdir(tag.text)
+            folder_name = sanitize_filename(tag.text)
+            os.mkdir(folder_name)
+            os.chdir(folder_name)
 
             soup = getPage(session, url+tag['href'])
             links = getLinks(soup, 'Dosyalari?g')
@@ -116,14 +125,15 @@ def capturePage(session, resourceTagList):
             '''Go back when done'''
             os.chdir(root)
 
-        elif tag.findPrevious('img')['src'] == '/images/ds/link.png':
+        elif tag.find_previous('img')['src'] == '/images/ds/link.png':
             '''If the icon is a link, dont touch it'''
             continue
 
         else:
             '''Download the rest'''
             r = session.get(url+tag['href'])
-            f = open(tag.text, 'wb')
+            filename = sanitize_filename(tag.text)
+            f = open(filename, 'wb')
             f.write(r.content)
             f.close()
 

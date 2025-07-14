@@ -1,2 +1,7 @@
-- Update mode
-- Ability to download homework files
+- Update mode - [only download files that arent present instead of creating a new duplicate folder append new data to the current one]
+- Ability to download homework files [odevler]
+- make it so that users can choose the courses they want to download from. allow multiselect
+- add a web ui - with login screen, course-selection option, status bar, progress bar, and local directory choosing. use Streamlit
+
+
+- make the user login in the browser so its more trusty
